@@ -27,6 +27,105 @@ using namespace std; //Para no tener que poner std:: antes de: vectores, strings
 // Le indica al enlazador de Visual Studio que incluya la librería WinHTTP
 #pragma comment(lib, "winhttp.lib")
 
+
+void EnviarResultado(const char* eleccion, const char* parametro, const char* resultados, int N) {
+    // El host debe ir ahora como formato Wide String (con una 'L' delante) y sin el https://
+    LPCWSTR host = L"pl2jorgejoseantonio-cqhbgmhvdcaxarcf.spaincentral-01.azurewebsites.net";
+    LPCWSTR path = L"/api/resultados";
+;
+    // Variables de usuario
+    char nombre[100];
+
+    int bufferSize = 400 * N;
+    char* json = (char*)malloc(bufferSize);
+
+
+    // Leer datos del usuario
+    printf("Introduce tu nombre de usuario: ");
+    fgets(nombre, sizeof(nombre), stdin);
+    nombre[strcspn(nombre, "\n")] = 0; // quitar salto de línea
+
+    // Crear JSON
+    snprintf(json, bufferSize,
+        "{\"Usuario\":\"%s\", \"Eleccion\":\"%s\", \"Parametro\":\"%s\", \"Resultados\":\"%s\"}",
+        nombre, eleccion, parametro, resultados);
+
+    printf("\nConectando a Azure por HTTPS...\n");
+
+    // 1. Inicializar la sesión de WinHTTP
+    HINTERNET hSession = WinHttpOpen(L"Cliente C++/1.0",
+        WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+        WINHTTP_NO_PROXY_NAME,
+        WINHTTP_NO_PROXY_BYPASS, 0);
+
+    if (!hSession) {
+        printf("Error inicializando WinHTTP\n");
+        return;
+    }
+
+    // 2. Conectar al servidor (se especifica el puerto HTTPS predeterminado: 443)
+    HINTERNET hConnect = WinHttpConnect(hSession, host, INTERNET_DEFAULT_HTTPS_PORT, 0);
+
+    // 3. Crear la petición (POST y marcamos la flag WINHTTP_FLAG_SECURE para usar HTTPS)
+    HINTERNET hRequest = WinHttpOpenRequest(hConnect, L"POST", path,
+        NULL, WINHTTP_NO_REFERER,
+        WINHTTP_DEFAULT_ACCEPT_TYPES,
+        WINHTTP_FLAG_SECURE);
+
+    if (hRequest) {
+        // Cabecera indicando que enviaremos JSON
+        LPCWSTR headers = L"Content-Type: application/json\r\n";
+
+        // 4. Enviar la petición con el JSON como cuerpo
+        BOOL bResults = WinHttpSendRequest(hRequest,
+            headers, (DWORD)-1L,
+            json, (DWORD)strlen(json),  // El cuerpo del mensaje
+            (DWORD)strlen(json), 0);
+
+        // 5. Esperar la respuesta
+        if (bResults) {
+            bResults = WinHttpReceiveResponse(hRequest, NULL);
+        }
+
+        // 6. Leer e imprimir la respuesta
+        if (bResults) {
+            DWORD formatSize = 0;
+            DWORD downloaded = 0;
+            char* buffer = NULL;
+
+            printf("Request enviado con exito. Leyendo respuesta...\n\n");
+
+            // Leemos los datos en bucle hasta que no quede nada
+            do {
+                formatSize = 0;
+                WinHttpQueryDataAvailable(hRequest, &formatSize);
+
+                if (formatSize == 0) break;
+
+                buffer = (char*)malloc(formatSize + 1);
+                if (buffer) {
+                    ZeroMemory(buffer, formatSize + 1);
+                    if (WinHttpReadData(hRequest, (LPVOID)buffer, formatSize, &downloaded)) {
+                        printf("%s", buffer);
+                    }
+                    free(buffer);
+                }
+            } while (formatSize > 0);
+            printf("\n");
+        }
+        else {
+            printf("Error en la peticion HTTPS: %d\n", GetLastError());
+        }
+
+        // Cerrar el handle de la petición
+        WinHttpCloseHandle(hRequest);
+    }
+
+    // Cerrar los manejadores de conexión
+    if (hConnect) WinHttpCloseHandle(hConnect);
+    if (hSession) WinHttpCloseHandle(hSession);
+}
+
 /*
 int main()
 {
@@ -1458,108 +1557,13 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 int main()
 {
 
-    // El host debe ir ahora como formato Wide String (con una 'L' delante) y sin el https://
-    LPCWSTR host = L"helloworldjoseantonio-g2emd9g3htfygee5.spaincentral-01.azurewebsites.net";
-    LPCWSTR path = L"/api/usuarios";
+    // Ejemplo de valores
+    const char* eleccion = "Metodo 2";
+    const char* parametro = "42";
+    const char* resultados = "1234ABC:300;0987ZYX:1000;";
 
-    // Variables de usuario
-    char id[100];
-    char nombre[100];
-    char correo[100];
-    char json[400];
-
-    // Leer datos del usuario
-    printf("Introduce tu id: ");
-    fgets(id, sizeof(id), stdin);
-    id[strcspn(id, "\n")] = 0;
-
-    printf("Introduce tu nombre: ");
-    fgets(nombre, sizeof(nombre), stdin);
-    nombre[strcspn(nombre, "\n")] = 0; // quitar salto de línea
-
-    printf("Introduce tu correo: ");
-    fgets(correo, sizeof(correo), stdin);
-    correo[strcspn(correo, "\n")] = 0;
-
-    // Crear JSON
-    snprintf(json, sizeof(json),
-        "{\"id\":\"%s\", \"nombre\":\"%s\", \"correo\":\"%s\"}",
-        id, nombre, correo);
-
-    printf("\nConectando a Azure por HTTPS...\n");
-
-    // 1. Inicializar la sesión de WinHTTP
-    HINTERNET hSession = WinHttpOpen(L"Cliente C++/1.0",
-        WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
-        WINHTTP_NO_PROXY_NAME,
-        WINHTTP_NO_PROXY_BYPASS, 0);
-
-    if (!hSession) {
-        printf("Error inicializando WinHTTP\n");
-        return 1;
-    }
-
-    // 2. Conectar al servidor (se especifica el puerto HTTPS predeterminado: 443)
-    HINTERNET hConnect = WinHttpConnect(hSession, host, INTERNET_DEFAULT_HTTPS_PORT, 0);
-
-    // 3. Crear la petición (POST y marcamos la flag WINHTTP_FLAG_SECURE para usar HTTPS)
-    HINTERNET hRequest = WinHttpOpenRequest(hConnect, L"POST", path,
-        NULL, WINHTTP_NO_REFERER,
-        WINHTTP_DEFAULT_ACCEPT_TYPES,
-        WINHTTP_FLAG_SECURE);
-
-    if (hRequest) {
-        // Cabecera indicando que enviaremos JSON
-        LPCWSTR headers = L"Content-Type: application/json\r\n";
-
-        // 4. Enviar la petición con el JSON como cuerpo
-        BOOL bResults = WinHttpSendRequest(hRequest,
-            headers, (DWORD)-1L,
-            json, (DWORD)strlen(json),  // El cuerpo del mensaje
-            (DWORD)strlen(json), 0);
-
-        // 5. Esperar la respuesta
-        if (bResults) {
-            bResults = WinHttpReceiveResponse(hRequest, NULL);
-        }
-
-        // 6. Leer e imprimir la respuesta
-        if (bResults) {
-            DWORD formatSize = 0;
-            DWORD downloaded = 0;
-            char* buffer = NULL;
-
-            printf("Request enviado con exito. Leyendo respuesta...\n\n");
-
-            // Leemos los datos en bucle hasta que no quede nada
-            do {
-                formatSize = 0;
-                WinHttpQueryDataAvailable(hRequest, &formatSize);
-
-                if (formatSize == 0) break;
-
-                buffer = (char*)malloc(formatSize + 1);
-                if (buffer) {
-                    ZeroMemory(buffer, formatSize + 1);
-                    if (WinHttpReadData(hRequest, (LPVOID)buffer, formatSize, &downloaded)) {
-                        printf("%s", buffer);
-                    }
-                    free(buffer);
-                }
-            } while (formatSize > 0);
-            printf("\n");
-        }
-        else {
-            printf("Error en la peticion HTTPS: %d\n", GetLastError());
-        }
-
-        // Cerrar el handle de la petición
-        WinHttpCloseHandle(hRequest);
-    }
-
-    // Cerrar los manejadores de conexión
-    if (hConnect) WinHttpCloseHandle(hConnect);
-    if (hSession) WinHttpCloseHandle(hSession);
+    // Llamada a la función
+    EnviarResultado(eleccion, parametro, resultados, 5);
 
     string ruta = "";
 
