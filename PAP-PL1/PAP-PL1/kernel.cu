@@ -15,6 +15,8 @@ using namespace std; //Para no tener que poner std:: antes de: vectores, strings
 #include <string.h>
 #include <vector>
 #include <cmath>
+#include <sstream>
+#include <iomanip>
 
 #include <stdio.h>
 #include <string.h>
@@ -235,6 +237,100 @@ int main()
     return 0;
 }
 */
+
+string UnirVectores(const vector<char>& matriculas,
+    const vector<float>& datossol,
+    int MAX_TAIL_NUM,
+    int N,
+    int* outN)
+{
+    int limite = min((int)datossol.size(), N);
+
+    string resultado;
+
+    *outN = limite;
+
+    for (int i = 0; i < limite; i++) {
+
+        string tail(&matriculas[i * MAX_TAIL_NUM]);
+
+        string numero;
+
+        // Si es entero
+        if (floor(datossol[i]) == datossol[i]) {
+
+            numero = to_string((int)datossol[i]);
+
+        }
+        else {
+
+            ostringstream oss;
+            oss << fixed << setprecision(2) << datossol[i];
+
+            numero = oss.str();
+        }
+
+        resultado += tail
+            + ":"
+            + numero
+            + ";";
+    }
+
+    return resultado;
+}
+
+
+#include <iostream>
+#include <limits>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+string PedirYConstruirResultados(const vector<char>& matriculas,
+    const vector<float>& datossol,
+    int MAX_TAIL_NUM,
+    int* outN)
+{
+    bool numeroIncorrecto = true;
+    int cantidadResultados;
+
+    while (numeroIncorrecto) {
+
+        cout << "Introduzca la cantidad de datos que desea subir (entre 1 y 50): ";
+        cin >> cantidadResultados;
+
+        if (!cin) {
+
+            cout << "\nOpcion no valida\n";
+
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            continue;
+        }
+
+        // Comprobar rango
+        if (cantidadResultados < 1 || cantidadResultados > 50) {
+
+            cout << "\nEl numero debe estar entre 1 y 50\n";
+
+            continue;
+        }
+
+        numeroIncorrecto = false;
+    }
+
+    string resultados = UnirVectores(
+        matriculas,
+        datossol,
+        MAX_TAIL_NUM,
+        cantidadResultados,
+        outN
+    );
+
+    return resultados;
+}
 
 __constant__ float d_umbral_2; //EL umbral en memoria constante que pide el ejercicio 2
 
@@ -1556,7 +1652,7 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
 int main()
 {
-
+    /*
     // Ejemplo de valores
     const char* eleccion = "Metodo 2";
     const char* parametro = "42";
@@ -1564,6 +1660,7 @@ int main()
 
     // Llamada a la función
     EnviarResultado(eleccion, parametro, resultados, 5);
+    */
 
     string ruta = "";
 
@@ -1590,11 +1687,11 @@ int main()
         cout << "\nCargando con ruta por defecto\n";
         //FUNCION DE CARGA CON LA RUTA POR DEFECTO
         //Ruta por defecto Jose Antonio:
-        //leerCSV("D:/Fichero PAP/Airline_dataset.csv",  arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
+        leerCSV("D:/Fichero PAP/Airline_dataset.csv",  arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
         //Ruta por defecto Jorge:
         //leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
         //Ruta por defecto que se dice:
-        leerCSV("C:/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
+        //leerCSV("C:/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
 
     }
     else
@@ -1782,6 +1879,41 @@ int main()
                 }
             }
             
+
+            char opcionGuardar;
+
+            cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+            cin >> opcionGuardar;
+
+            if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
+
+                int outN;
+
+                string resultados = PedirYConstruirResultados(
+                    outTail,
+                    outDelay,
+                    MAX_TAIL_NUM,
+                    &outN
+                );
+
+                cout << resultados << endl;
+                cout << outN << endl;
+
+                ostringstream oss;
+                oss << fixed << setprecision(0) << umbral;
+
+                string umbralStr = oss.str();
+
+                cin.clear(); //Limpia errores
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+                if (umbral >= 0) {
+                    EnviarResultado("Fase 2-Atraso", umbralStr.c_str(), resultados.c_str(), outN);
+                }
+                else {
+                    EnviarResultado("Fase 2-Adelanto", umbralStr.c_str(), resultados.c_str(), outN);
+                }
+            }
 
             //Liberar memoria
             cudaFree(d_arrDelay);
