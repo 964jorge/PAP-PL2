@@ -32,7 +32,7 @@ using namespace std; //Para no tener que poner std:: antes de: vectores, strings
 
 void EnviarResultado(const char* eleccion, const char* parametro, const char* resultados, int N) {
     // El host debe ir ahora como formato Wide String (con una 'L' delante) y sin el https://
-    LPCWSTR host = L"pl2jorgejoseantoniopruebajorge.azurewebsites.net";
+    LPCWSTR host = L"pl2jorgejoseantonio-cqhbgmhvdcaxarcf.spaincentral-01.azurewebsites.net";
     LPCWSTR path = L"/api/resultados";
 ;
     // Variables de usuario
@@ -238,7 +238,7 @@ int main()
 }
 */
 
-string UnirVectoresEj2(const vector<char>& matriculas,
+string unirVectoresEj2(const vector<char>& matriculas,
     const vector<float>& datossol,
     int MAX_TAIL_NUM,
     int N,
@@ -287,7 +287,7 @@ string UnirVectoresEj2(const vector<char>& matriculas,
 
 using namespace std;
 
-string PedirYConstruirResultadosEj2(const vector<char>& matriculas,
+string pedirYConstruirResultadoEj2(const vector<char>& matriculas,
     const vector<float>& datossol,
     int MAX_TAIL_NUM,
     int* outN)
@@ -321,7 +321,7 @@ string PedirYConstruirResultadosEj2(const vector<char>& matriculas,
         numeroIncorrecto = false;
     }
 
-    string resultados = UnirVectoresEj2(
+    string resultados = unirVectoresEj2(
         matriculas,
         datossol,
         MAX_TAIL_NUM,
@@ -331,6 +331,89 @@ string PedirYConstruirResultadosEj2(const vector<char>& matriculas,
 
     return resultados;
 }
+
+
+
+
+
+
+string unirVectoresEj4(const vector<int>& idsOrdenados, const vector<string>& codigoAeropuertoOrdenado, const vector<int>& cantidadOcurrenciasOrdenadas, int* outN, int cantidadResultados) {
+
+    int limite = min((int)idsOrdenados.size(), cantidadResultados);
+
+    string resultado;
+
+    *outN = limite;
+
+    for (int i = 0; i < limite; i++) {
+    
+
+        int idActual = idsOrdenados[i];
+        string codigoActual = codigoAeropuertoOrdenado[i];
+        int ocurrenciasActuales = cantidadOcurrenciasOrdenadas[i];
+
+
+        resultado += codigoActual + "    " + to_string(idActual) + ":" + to_string(ocurrenciasActuales) + ";";
+
+    
+    }
+
+
+    return resultado;
+}
+
+
+string pedirYConstruirResultadoEj4(const vector<int>& idsOrdenados, const vector<string>& codigoAeropuertoOrdenado, const vector<int>& cantidadOcurrenciasOrdenadas, int* outN) {
+
+
+    bool numeroIncorrecto = true;
+    int cantidadResultados;
+
+    while (numeroIncorrecto) {
+
+        cout << "Introduzca la cantidad de datos que desea subir (entre 1 y 50): ";
+        cin >> cantidadResultados;
+
+        if (!cin) {
+
+            cout << "\nOpcion no valida\n";
+
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            continue;
+        }
+
+        // Comprobar rango
+        if (cantidadResultados < 1 || cantidadResultados > 50) {
+
+            cout << "\nEl numero debe estar entre 1 y 50\n";
+
+            continue;
+        }
+
+        numeroIncorrecto = false;
+    }
+
+
+
+    string resultado = unirVectoresEj4(idsOrdenados, codigoAeropuertoOrdenado, cantidadOcurrenciasOrdenadas, outN, cantidadResultados);
+
+
+
+    return resultado;
+
+
+}
+
+
+
+
+
+
+
+
+
 
 __constant__ float d_umbral_2; //EL umbral en memoria constante que pide el ejercicio 2
 
@@ -1707,7 +1790,9 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
         
     }
 
-    
+    vector<int> idsOrdenados;
+    vector<string> codigoAeropuertoOrdenado;
+    vector<int> cantidadOcurrenciasOrdenadas;
 
     //aqui es donde se hace el histograma como tal, la opcion2 era la cota que nos daba el usuario entonces no vamos a mostrar cosas menores
 
@@ -1719,6 +1804,9 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
     
         cout << "El aeropuerto " << codAeropuerto << " con id " << id << " aparece " << siguienteMaximo << " veces. ";
 
+        idsOrdenados.push_back(id);
+        codigoAeropuertoOrdenado.push_back(codAeropuerto);
+        cantidadOcurrenciasOrdenadas.push_back(siguienteMaximo);
 
         int totalAsteriscos = 15;
         //por que esta conversion es critica?
@@ -1759,6 +1847,44 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
     //para saber que hemos ternminado decimos esto y liberamos resultado
     cout << "Fin de resultados.\n";
+
+
+
+
+    char opcionGuardar;
+
+    cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+    cin >> opcionGuardar;
+
+    if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
+
+        int outN;
+
+        string resultados = pedirYConstruirResultadoEj4(idsOrdenados, codigoAeropuertoOrdenado, cantidadOcurrenciasOrdenadas, &outN);
+
+        cout << resultados << endl;
+
+
+        cin.clear(); //Limpia errores
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        string umbralString = to_string(opcion2);
+
+        if (opcion1 == 1) {
+        
+            EnviarResultado("Ejercicio 4 - Aeropuertos de Origen", umbralString.c_str(), resultados.c_str(), outN);
+        
+        }
+        else {
+        
+            EnviarResultado("Ejercicio 4 - Aeropuertos de Destino", umbralString.c_str(), resultados.c_str(), outN);
+        
+        }
+
+
+
+    }
+
 
     cudaFree(resultado);
     
@@ -2014,7 +2140,7 @@ int main()
 
                 int outN;
 
-                string resultados = PedirYConstruirResultadosEj2(
+                string resultados = pedirYConstruirResultadoEj2(
                     outTail,
                     outDelay,
                     MAX_TAIL_NUM,
@@ -2033,10 +2159,10 @@ int main()
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
                 if (umbral >= 0) {
-                    EnviarResultado("Fase 2-Atraso", umbralStr.c_str(), resultados.c_str(), outN);
+                    EnviarResultado("Ejercicio 2 - Atrasos", umbralStr.c_str(), resultados.c_str(), outN);
                 }
                 else {
-                    EnviarResultado("Fase 2-Adelanto", umbralStr.c_str(), resultados.c_str(), outN);
+                    EnviarResultado("Ejercicio 2 - Adelantos", umbralStr.c_str(), resultados.c_str(), outN);
                 }
             }
 
