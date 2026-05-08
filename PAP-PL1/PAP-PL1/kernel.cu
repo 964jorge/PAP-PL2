@@ -32,7 +32,7 @@ using namespace std; //Para no tener que poner std:: antes de: vectores, strings
 
 void EnviarResultado(const char* eleccion, const char* parametro, const char* resultados, int N) {
     // El host debe ir ahora como formato Wide String (con una 'L' delante) y sin el https://
-    LPCWSTR host = L"pl2jorgejoseantonio-cqhbgmhvdcaxarcf.spaincentral-01.azurewebsites.net";
+    LPCWSTR host = L"pl2jorgejoseantoniopruebajorge.azurewebsites.net";
     LPCWSTR path = L"/api/resultados";
 ;
     // Variables de usuario
@@ -1687,9 +1687,9 @@ int main()
         cout << "\nCargando con ruta por defecto\n";
         //FUNCION DE CARGA CON LA RUTA POR DEFECTO
         //Ruta por defecto Jose Antonio:
-        leerCSV("D:/Fichero PAP/Airline_dataset.csv",  arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
+        //leerCSV("D:/Fichero PAP/Airline_dataset.csv",  arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
         //Ruta por defecto Jorge:
-        //leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
+        leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
         //Ruta por defecto que se dice:
         //leerCSV("C:/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
 
