@@ -1082,7 +1082,7 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
     int* d_vectorDatos;
     int* resultado;
     int* resultadoReductor;
-    string columna;
+    char* columna;
     int resultadoFinal;
 
     //este switch lo hacemos para ver que ha pedido el usuario, en columna guardamos que columna guardamos luego para el print y 
@@ -1414,7 +1414,7 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
         }
 
-
+        
         printf("\n[Minimacion Reduccion] %s %d\n", columna, resultadoFinal);
 
     }
@@ -1431,13 +1431,13 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
     char opcionGuardar;
 
-    cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+    cout << "\n¿Desea enviar a la base de datos los resultados? (y/n):: ";
     cin >> opcionGuardar;
 
     if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
 
 
-        string resultados = columna + " : " + to_string(resultadoFinal);
+        string resultados = columna + string(" : ") + to_string(resultadoFinal);
 
         cout << resultados << endl;
 
@@ -1853,7 +1853,7 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
     char opcionGuardar;
 
-    cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+    cout << "\n¿Desea enviar a la base de datos los resultados? (y/n):: ";
     cin >> opcionGuardar;
 
     if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
@@ -1938,9 +1938,9 @@ int main()
         cout << "\nCargando con ruta por defecto\n";
         //FUNCION DE CARGA CON LA RUTA POR DEFECTO
         //Ruta por defecto Jose Antonio:
-        leerCSV("D:/Fichero PAP/Airline_dataset.csv",  arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
+        //leerCSV("D:/Fichero PAP/Airline_dataset.csv",  arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
         //Ruta por defecto Jorge:
-        //leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
+        leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
         //Ruta por defecto que se dice:
         //leerCSV("C:/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
 
@@ -2077,7 +2077,7 @@ int main()
 
             char opcionGuardar;
 
-            cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+            cout << "\n¿Desea enviar a la base de datos los resultados? (y/n):: ";
             cin >> opcionGuardar;
 
             if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
@@ -2228,7 +2228,7 @@ int main()
 
             char opcionGuardar;
 
-            cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+            cout << "\n¿Desea enviar a la base de datos los resultados? (y/n):: ";
             cin >> opcionGuardar;
 
             if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
