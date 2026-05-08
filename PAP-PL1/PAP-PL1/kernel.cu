@@ -238,7 +238,7 @@ int main()
 }
 */
 
-string UnirVectores(const vector<char>& matriculas,
+string UnirVectoresEj2(const vector<char>& matriculas,
     const vector<float>& datossol,
     int MAX_TAIL_NUM,
     int N,
@@ -287,7 +287,7 @@ string UnirVectores(const vector<char>& matriculas,
 
 using namespace std;
 
-string PedirYConstruirResultados(const vector<char>& matriculas,
+string PedirYConstruirResultadosEj2(const vector<char>& matriculas,
     const vector<float>& datossol,
     int MAX_TAIL_NUM,
     int* outN)
@@ -321,7 +321,7 @@ string PedirYConstruirResultados(const vector<char>& matriculas,
         numeroIncorrecto = false;
     }
 
-    string resultados = UnirVectores(
+    string resultados = UnirVectoresEj2(
         matriculas,
         datossol,
         MAX_TAIL_NUM,
@@ -999,7 +999,8 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
     int* d_vectorDatos;
     int* resultado;
     int* resultadoReductor;
-    char* columna;
+    string columna;
+    int resultadoFinal;
 
     //este switch lo hacemos para ver que ha pedido el usuario, en columna guardamos que columna guardamos luego para el print y 
     //tomamos de los valores que pasamos los que son numeros truncados como se pide llenando nuestro vectorDatos que sera el que usaremos para inicializar el puntero del kernel
@@ -1227,7 +1228,7 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
         //si hemos llegado aquie es que el tamaño del resultado es menor que 10, vamos a ver que hacemos
 
         //tomamos como resultado la primera posicion del vector que sabemos que siempre existira
-        int resultadoFinal = resultadoReduccionVector[0];
+        resultadoFinal = resultadoReduccionVector[0];
 
 
         //recorremos el vector paso a paso y comparamos el resultado con la posicion siguiente a la que estamos, si es mayor la dejamos en el resultado
@@ -1318,7 +1319,7 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
         }
 
 
-        int resultadoFinal = resultadoReduccionVector[0];
+        resultadoFinal = resultadoReduccionVector[0];
 
         for (int i = 0; i < resultadoReduccionVector.size(); i++) {
 
@@ -1333,10 +1334,134 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
         printf("\n[Minimacion Reduccion] %s %d\n", columna, resultadoFinal);
 
-
-
-
     }
+
+
+
+
+
+
+
+
+
+
+
+    char opcionGuardar;
+
+    cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+    cin >> opcionGuardar;
+
+    if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
+
+
+        string resultados = columna + " : " + to_string(resultadoFinal);
+
+        cout << resultados << endl;
+
+
+        cin.clear(); //Limpia errores
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        switch (opcion1) {
+
+        case 1: {
+
+
+            if (opcion2 == 1) {
+
+                EnviarResultado("Ejercicio 3 - Maximizador", "-", resultados.c_str(), 1);
+
+            }
+            else {
+
+                EnviarResultado("Ejercicio 3 - Minimizador", "-", resultados.c_str(), 1);
+
+            }
+
+            break;
+
+        }
+        case 2: {
+
+            if (opcion2 == 1) {
+
+                EnviarResultado("Ejercicio 3 - Maximizador", "-", resultados.c_str(), 1);
+
+            }
+            else {
+
+                EnviarResultado("Ejercicio 3 - Minimizador", "-", resultados.c_str(), 1);
+
+            }
+
+            break;
+
+        }
+        case 3: {
+
+            if (opcion2 == 1) {
+
+                EnviarResultado("Ejercicio 3 - Maximizador", "-", resultados.c_str(), 1);
+
+            }
+            else {
+
+                EnviarResultado("Ejercicio 3 - Minimizador", "-", resultados.c_str(), 1);
+
+            }
+
+            break;
+
+        }
+        case 4: {
+
+            if (opcion2 == 1) {
+
+                EnviarResultado("Ejercicio 3 - Maximizador", "-", resultados.c_str(), 1);
+
+            }
+            else {
+
+                EnviarResultado("Ejercicio 3 - Minimizador", "-", resultados.c_str(), 1);
+
+            }
+
+            break;
+
+        }
+        case 5: {
+
+            if (opcion2 == 1) {
+
+                EnviarResultado("Ejercicio 3 - Maximizador", "-", resultados.c_str(), 1);
+
+            }
+            else {
+
+                EnviarResultado("Ejercicio 3 - Minimizador", "-", resultados.c_str(), 1);
+
+            }
+
+            break;
+
+        }
+
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     cudaFree(d_vectorDatos);
     cudaFree(resultado);
@@ -1889,7 +2014,7 @@ int main()
 
                 int outN;
 
-                string resultados = PedirYConstruirResultados(
+                string resultados = PedirYConstruirResultadosEj2(
                     outTail,
                     outDelay,
                     MAX_TAIL_NUM,
