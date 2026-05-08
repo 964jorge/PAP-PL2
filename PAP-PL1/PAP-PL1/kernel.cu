@@ -1938,9 +1938,9 @@ int main()
         cout << "\nCargando con ruta por defecto\n";
         //FUNCION DE CARGA CON LA RUTA POR DEFECTO
         //Ruta por defecto Jose Antonio:
-        //leerCSV("D:/Fichero PAP/Airline_dataset.csv",  arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
+        leerCSV("D:/Fichero PAP/Airline_dataset.csv",  arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
         //Ruta por defecto Jorge:
-        leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
+        //leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
         //Ruta por defecto que se dice:
         //leerCSV("C:/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
 
@@ -1971,15 +1971,13 @@ int main()
         switch (opcion) {
         case 1: {
 
-            float umbral;
             bool opcionNoValida = true;
-            
-            while (opcionNoValida) {
+            float umbral;
 
+            while (opcionNoValida) {
 
                 cout << "Introduzca el umbral (positivo para retrasos, negativo para adelantos): ";
                 cin >> umbral;
-
 
                 if (!cin) { //Que me han dado un float bien, que no salgo y reinicio el cin
 
@@ -1993,17 +1991,48 @@ int main()
 
                 opcionNoValida = false;
 
-            
+            }
+
+            int N = depDelay.size();
+
+
+            //Convertir los strings a array plano (para que la GPU los pueda usar)
+            char* tailNumPlano = new char[N * MAX_TAIL_NUM];
+            //Reserva un bloque de memoria continuo capaz de guardar N matrículas, cada una de MAX_TAIL_NUM caracteres
+
+            for (int i = 0; i < N; i++) {
+                strncpy(&tailNumPlano[i * MAX_TAIL_NUM], tailNum[i].c_str(), MAX_TAIL_NUM); //Copia lo que tailNum tiene en la posicion i,
+                                                                                            // en forma de caracteres con longitud de
+                                                                                            // MAX_TAIL_NUM. Ej: hol -> h, o, l, ?, ?, ... 
+                                                                                            // hasta MAX_TAIL_NUM
+                tailNumPlano[i * MAX_TAIL_NUM + MAX_TAIL_NUM - 1] = '\0'; //Añadimos esto para que cuando imprimimos se pare en cada
+                                                                          // matricula correspondiente en vez de imprimir todo el array que 
+                                                                          // contiene a los caracteres de las matriculas
             }
 
 
-            // Copiar a GPU
-            float* d_depDelay;
-            int N = depDelay.size(); //devuelve el tamaño del vector
+            //Punteros para GPU
+            float* d_arrDelay;
+            char* d_tailNum;
+            float* d_outDelay;
+            char* d_outTail;
+            int* d_contador;
 
-            cudaMalloc(&d_depDelay, N * sizeof(float)); //Reservamos la memoria
-            //depDelay.data() nos devuelve el puntero al primer elemento del vector
-            cudaMemcpy(d_depDelay, depDelay.data(), N * sizeof(float), cudaMemcpyHostToDevice);
+            //Reserva de memoria
+            cudaMalloc(&d_arrDelay, N * sizeof(float));
+            cudaMalloc(&d_tailNum, N * MAX_TAIL_NUM);
+            cudaMalloc(&d_outDelay, N * sizeof(float));
+            cudaMalloc(&d_outTail, N * MAX_TAIL_NUM);
+            cudaMalloc(&d_contador, sizeof(int));
+
+            cudaMemset(d_contador, 0, sizeof(int)); //Inicializamos el contador a 0
+
+            //Copiado a memoria
+            cudaMemcpy(d_arrDelay, depDelay.data(), N * sizeof(float), cudaMemcpyHostToDevice);
+            cudaMemcpy(d_tailNum, tailNumPlano, N * MAX_TAIL_NUM, cudaMemcpyHostToDevice);
+
+            //Memoria constante
+            cudaMemcpyToSymbol(d_umbral_2, &umbral, sizeof(float));
 
 
             //Configuracion de bloques e hilos
@@ -2014,13 +2043,79 @@ int main()
 
             cout << "\nProcediendo a la ejecucion, espere por favor...\n";
 
-
-            //Lanzamos todos los hilos a ejecutar el programa
-            detectarRetrasos <<<blocksInGrid, threadsInBlock>>> (d_depDelay, N, umbral); 
+            detectarAterrizajes << <blocksInGrid, threadsInBlock >> > (d_arrDelay, d_tailNum, N, d_outDelay, d_outTail, d_contador);
 
             cudaDeviceSynchronize(); //Esperamos a que todos los hilos terminen
 
-            cudaFree(d_depDelay); //Liberamos la memoria
+            //Recuperar los resultados
+            int h_contador;
+            cudaMemcpy(&h_contador, d_contador, sizeof(int), cudaMemcpyDeviceToHost);
+
+            vector<float> outDelay(h_contador);
+            vector<char> outTail(h_contador * MAX_TAIL_NUM);
+
+            cudaMemcpy(outDelay.data(), d_outDelay, h_contador * sizeof(float), cudaMemcpyDeviceToHost);
+            cudaMemcpy(outTail.data(), d_outTail, h_contador * MAX_TAIL_NUM, cudaMemcpyDeviceToHost);
+
+            cout << "\nSe han encontrado: " << h_contador << " aviones" << endl;
+
+            //Imprimir resulatdos con los vectores
+            int cont = 0;
+            if (umbral > 0) {
+                while (cont < h_contador) {
+                    cout << "- Matricula " << &outTail[cont * MAX_TAIL_NUM] << " Retraso: " << outDelay[cont] << " minutos" << endl;
+                    cont++;
+                }
+            }
+            else {
+                while (cont < h_contador) {
+                    cout << "Matricula " << &outTail[cont * MAX_TAIL_NUM] << " Adelanto: " << abs(outDelay[cont]) << " minutos" << endl;
+                    cont++;
+                }
+            }
+
+
+            char opcionGuardar;
+
+            cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+            cin >> opcionGuardar;
+
+            if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
+
+                int outN;
+
+                string resultados = pedirYConstruirResultadoEj2(
+                    outTail,
+                    outDelay,
+                    MAX_TAIL_NUM,
+                    &outN
+                );
+
+                cout << resultados << endl;
+                cout << outN << endl;
+
+                ostringstream oss;
+                oss << fixed << setprecision(0) << umbral;
+
+                string umbralStr = oss.str();
+
+                cin.clear(); //Limpia errores
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+                if (umbral >= 0) {
+                    EnviarResultado("Ejercicio 1 - Atrasos", umbralStr.c_str(), resultados.c_str(), outN);
+                }
+                else {
+                    EnviarResultado("Ejercicio 1 - Adelantos", umbralStr.c_str(), resultados.c_str(), outN);
+                }
+            }
+
+            //Liberar memoria
+            cudaFree(d_arrDelay);
+            cudaFree(d_tailNum);
+            cudaFree(d_outDelay);
+            cudaFree(d_outTail);
+            cudaFree(d_contador);
 
             break;
         }
