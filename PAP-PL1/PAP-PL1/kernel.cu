@@ -1431,7 +1431,7 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
     char opcionGuardar;
 
-    cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+    cout << "\n¿Desea enviar a la base de datos los resultados? (y/n): ";
     cin >> opcionGuardar;
 
     if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
@@ -1853,7 +1853,7 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
     char opcionGuardar;
 
-    cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+    cout << "\n¿Desea enviar a la base de datos los resultados? (y/n): ";
     cin >> opcionGuardar;
 
     if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
@@ -2077,7 +2077,7 @@ int main()
 
             char opcionGuardar;
 
-            cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+            cout << "\n¿Desea enviar a la base de datos los resultados? (y/n): ";
             cin >> opcionGuardar;
 
             if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
@@ -2228,7 +2228,7 @@ int main()
 
             char opcionGuardar;
 
-            cout << "\n¿Desea enviar a la base de datos los resultados? (Y/y para si, cualquir otra cosa para omitir): ";
+            cout << "\n¿Desea enviar a la base de datos los resultados? (y/n): ";
             cin >> opcionGuardar;
 
             if (opcionGuardar == 'Y' || opcionGuardar == 'y') {
